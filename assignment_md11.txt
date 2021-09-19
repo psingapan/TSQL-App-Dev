@@ -1,0 +1,36 @@
+WITH CTE_2006 AS
+(SELECT custid, MAX(freight) AS '2006 Max Freight'
+		 FROM Sales.Orders
+		 WHERE YEAR(orderdate) = '2006'
+		 GROUP BY custid),
+
+	CTE_2007 AS
+		 (SELECT custid, MAX(freight) AS '2007 Max Freight'
+		 FROM Sales.Orders
+		 WHERE YEAR(orderdate) = '2007'
+		 GROUP BY custid)
+
+SELECT Sales.Customers.contactname, Sales.Customers.custid, CTE_2006.[2006 Max Freight], 
+
+(SELECT Sales.Orders.orderid
+FROM Sales.Orders
+WHERE freight = CTE_2006.[2006 Max Freight] AND custid = CTE_2006.custid) AS '2006 MF orderid',
+
+(SELECT Sales.Orders.orderdate
+FROM Sales.Orders
+WHERE freight = CTE_2006.[2006 Max Freight] AND custid = CTE_2006.custid) AS '2006 MF orderdate',
+
+CTE_2007.[2007 Max Freight],
+
+(SELECT Sales.Orders.orderid
+FROM Sales.Orders
+WHERE freight = CTE_2007.[2007 Max Freight] AND custid = CTE_2007.custid) AS '2007 MF orderid',
+
+(SELECT Sales.Orders.orderdate
+FROM Sales.Orders
+WHERE freight = CTE_2007.[2007 Max Freight] AND custid = CTE_2007.custid) AS '2007 MF orderdate'
+
+FROM Sales.Customers
+LEFT OUTER JOIN CTE_2006 ON CTE_2006.custid = Sales.Customers.custid
+LEFT OUTER JOIN CTE_2007 on Sales.Customers.custid = CTE_2007.custid
+ORDER BY Sales.Customers.contactname
